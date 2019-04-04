@@ -1,0 +1,27 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="VsBuild.VsExtension.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="MSBuildProjectFile" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Build.proj</Value>
+    </Setting>
+    <Setting Name="SaveLogToDisk" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="BackgroundColor" Type="System.Drawing.Color" Scope="User">
+      <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="DefaultFont" Type="System.Drawing.Font" Scope="User">
+      <Value Profile="(Default)">Microsoft Sans Serif, 8pt</Value>
+    </Setting>
+    <Setting Name="DefaultTextColor" Type="System.ConsoleColor" Scope="User">
+      <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="MSBuildTargetMenuItems" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Build=Build;Clean=Clean;Run Tests=Test</Value>
+    </Setting>
+    <Setting Name="LoggerVerbosity" Type="Microsoft.Build.Framework.LoggerVerbosity" Scope="User">
+      <Value Profile="(Default)">Normal</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
