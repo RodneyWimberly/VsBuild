@@ -1,7 +1,6 @@
 ﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Logging;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,10 +9,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using System.Xml.Serialization;
+using VsBuild.MSBuildLogger;
 
 namespace VsBuild.MSBuildRunner
 {
-    public class MSBuildWrapper
+    public class MSBuildProcess
     {
         public ErrorEventHandler ErrorEvent;
         public BuildErrorEventHandler BuildErrorEvent;
@@ -57,8 +58,11 @@ namespace VsBuild.MSBuildRunner
                 if (!File.Exists(Path.Combine(VSWorkingDirectory, MSBuildProjectFile)))
                     throw new FileNotFoundException("MSBuild project file can't be found", Path.Combine(VSWorkingDirectory, MSBuildProjectFile));
 
+                
                 using (Process msBuild = new Process())
                 {
+                    CancellationTokenRegistration cancellationTokenRegistration = cancellationToken.Register(msBuild.Kill);
+
                     msBuild.StartInfo.FileName = MSBuildPath;
                     msBuild.StartInfo.Arguments = $"{MSBuildProjectFile} /t:{MSBuildTargets} /v:{LoggerVerbosity} /noconlog /logger:VsBuild.MSBuildLogger.ColorConsoleLogger,\"{Environment.CurrentDirectory}\\VsBuild.MSBuildLogger.dll\"";
                     msBuild.StartInfo.WorkingDirectory = VSWorkingDirectory;
@@ -67,7 +71,7 @@ namespace VsBuild.MSBuildRunner
                     msBuild.StartInfo.RedirectStandardOutput = true;
                     msBuild.StartInfo.RedirectStandardInput = true;
                     msBuild.StartInfo.RedirectStandardError = true;
-
+                    
                     msBuild.OutputDataReceived += MsBuild_OutputDataReceived;
                     msBuild.ErrorDataReceived += (sender, args) => ErrorEvent?.Invoke(this, new ErrorEventArgs(new Exception(args.Data)));
 
@@ -76,8 +80,9 @@ namespace VsBuild.MSBuildRunner
                     msBuild.BeginErrorReadLine();
                     await msBuild.WaitForExitAsync(cancellationToken);
                     msBuild.Close();
+                    cancellationTokenRegistration.Dispose();
                 }
-
+                
                 if (cancellationToken.IsCancellationRequested)
                     WriteToLog?.Invoke("Build was canceled");
             }
@@ -90,28 +95,40 @@ namespace VsBuild.MSBuildRunner
 
         private void MsBuild_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            string data = e.Data;
-            if (data.Contains("#SetColor:"))
+            if (e.Data == null)
+                return;
+
+            try
             {
-                if(Enum.TryParse(data.Replace("#SetColor:", string.Empty).Replace("#", string.Empty), out ConsoleColor consoleColor))
-                    SetColor?.Invoke(consoleColor);
+                XElement data = XElement.Parse(e.Data);
+
+                if (!Enum.TryParse(data.Attribute("Type").Value, out LoggerElementTypes type))
+                    return;
+                switch (type)
+                {
+                    case LoggerElementTypes.SetColor:
+                        if (Enum.TryParse(data.Value, out ConsoleColor consoleColor))
+                            SetColor?.Invoke(consoleColor);
+                        break;
+                    case LoggerElementTypes.ResetColor:
+                        ResetColor?.Invoke();
+                        break;
+                    case LoggerElementTypes.Message:
+                        WriteToLog?.Invoke(data.Value);
+                        break;
+                    case LoggerElementTypes.Error:
+                        BuildErrorEvent?.Invoke(this, data.Value.Deserialize<BuildErrorEventArgs>());
+                        break;
+                    case LoggerElementTypes.Warning:
+                        BuildWarningEvent?.Invoke(this, data.Value.Deserialize<BuildWarningEventArgs>());
+                        break;
+                }
+                
             }
-            else if (data.Contains("#ResetColor#"))
-                ResetColor?.Invoke();
-            else if (data.Contains("#BuildWarning:"))
+            catch
             {
-                data = data.Replace("#BuildWarning:", string.Empty).Replace("#", string.Empty);
-                BuildWarningEventArgs args = JsonConvert.DeserializeObject<BuildWarningEventArgs>(data);
-                BuildWarningEvent?.Invoke(this, args);
+                WriteToLog?.Invoke(e.Data);
             }
-            else if (data.Contains("#BuildError:"))
-            {
-                data = data.Replace("#BuildError:", string.Empty).Replace("#", string.Empty);
-                BuildErrorEventArgs args = JsonConvert.DeserializeObject<BuildErrorEventArgs>(data);
-                BuildErrorEvent?.Invoke(this, args);
-            }
-            else
-                WriteToLog?.Invoke(data);
         }
     }
 }

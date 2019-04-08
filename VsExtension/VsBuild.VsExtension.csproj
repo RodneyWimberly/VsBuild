@@ -106,6 +106,9 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
+    <Content Include="BuildLog.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\MSBuildCommand.png" />
     <Content Include="Resources\MSBuildCommandPackage.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -216,9 +219,6 @@
     <Reference Include="Nerdbank.Streams, Version=2.1.0.0, Culture=neutral, PublicKeyToken=cac503e1823ce71c, processorArchitecture=MSIL">
       <HintPath>..\packages\Nerdbank.Streams.2.1.37\lib\net46\Nerdbank.Streams.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -318,6 +318,10 @@
     <Analyzer Include="..\packages\Microsoft.VisualStudio.Threading.Analyzers.16.0.102\analyzers\cs\Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MSBuildLogger\VsBuild.MSBuildLogger.csproj">
+      <Project>{c0fe5d78-2680-41e2-9677-e87dacba3935}</Project>
+      <Name>VsBuild.MSBuildLogger</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MSBuildRunner\VsBuild.MSBuildRunner.csproj">
       <Project>{fda3ace9-89be-4ae1-8cc8-8a7f72235505}</Project>
       <Name>VsBuild.MSBuildRunner</Name>

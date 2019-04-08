@@ -25,6 +25,7 @@ namespace VsBuild.VsExtension
         private ConsoleColor _defaultTextColor;
         private MSBuildTargetMenuItems _targetMenuList;
         private readonly AsyncPackage package;
+        private bool _showOnMainMenu;
         private Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider => package;
 
         public CancellationTokenSource CancellationTokenSource { get; set; }
@@ -42,9 +43,10 @@ namespace VsBuild.VsExtension
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
+            _consoleColor = Settings.Default.DefaultTextColor;
             _defaultTextColor = Settings.Default.DefaultTextColor;
             _targetMenuList = new MSBuildTargetMenuItems(Settings.Default.MSBuildTargetMenuItems);
-
+            _showOnMainMenu = Settings.Default.ShowOnMainMenu;
             ShowTargetList = false;
             InitializeTargetsMenu(commandService);
         }
@@ -76,7 +78,7 @@ namespace VsBuild.VsExtension
                 int targetCmdIndex = menuCommand.CommandID.ID - MSBuildConstants.SubMenuTargetListCommandId;
                 if (targetCmdIndex >= 0 && targetCmdIndex < _targetMenuList.Count)                { }
                 {
-                    menuCommand.Visible = ShowTargetList;
+                    menuCommand.Visible = _showOnMainMenu && ShowTargetList;
                     menuCommand.Text = _targetMenuList[targetCmdIndex].MenuText;
                 }
             }
@@ -128,7 +130,7 @@ namespace VsBuild.VsExtension
                     CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(package.DisposalToken);
                     Settings settings = Settings.Default;
 
-                    MSBuildWrapper msBuild = new MSBuildWrapper
+                    MSBuildProcess msBuild = new MSBuildProcess
                     {
                         VSWorkingDirectory = SolutionEventsSink.Instance.GetSolutionFolder(),
                         MSBuildProjectFile = settings.MSBuildProjectFile,
@@ -170,7 +172,11 @@ namespace VsBuild.VsExtension
 
         private async void OnErrorEvent(object sender, ErrorEventArgs e)
         {
-            string errorMessage = $"MSBuild Wrapper Exception: {e.GetException().Message}";
+            string errorMessage = string.Empty;
+            if (CancellationTokenSource.IsCancellationRequested)
+                errorMessage = "MSBuild Process was canceled";
+            else
+                errorMessage = $"MSBuild Process Exception: {e.GetException().Message}";
             await OutputPaneManager.WriteToPaneAsync(errorMessage);
             await TaskPaneManager.AddErrorAsync(errorMessage);
             await _toolsWindow.AppendLogAsync(ConsoleColor.Red, errorMessage);

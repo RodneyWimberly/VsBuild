@@ -51,14 +51,14 @@
             MSBuildToolsWindowControl.SaveLog();
         }
 
-        public void ClearLog()
+        public async void ClearLog()
         {
-            MSBuildToolsWindowControl.ClearLog();
+            await MSBuildToolsWindowControl.ClearLogAsync();
         }
 
         public void SetLogLayout(Font font, Color backgroundColor)
         {
-
+            MSBuildToolsWindowControl.SetLayout(font, backgroundColor);
         }
     }
 }

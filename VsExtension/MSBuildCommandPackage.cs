@@ -31,7 +31,7 @@ namespace VsBuild.VsExtension
     [Guid(MSBuildConstants.guidMSBuildCommandPackage)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideToolWindow(typeof(MSBuildToolsWindow))]
-    [ProvideOptionPage(typeof(MSBuildOptions), "MSBuild", "General", 101, 106, true)]
+    [ProvideOptionPage(typeof(MSBuildOptions), MSBuildOptions.Category, MSBuildOptions.SubCategory, 101, 106, true)]
     public sealed class MSBuildCommandPackage : AsyncPackage
     {
         private IVsSolution _solutionService;
@@ -70,6 +70,21 @@ namespace VsBuild.VsExtension
                 _solutionService.AdviseSolutionEvents(SolutionEventsSink.Instance, out uint cookie);
                 SolutionEventsSink.Initialize(this, _solutionService, cookie);
             }
+
+
+            //_solutionService = await GetServiceAsync(typeof(SVsSolution)) as IVsBuildStatusCallback;
+            /*IVsSolutionBuildManager buildManager = (IVsSolutionBuildManager)GetService(typeof(SVsSolutionBuildManager));
+
+            IVsProjectCfg[] ppIVsProjectCfg = new IVsProjectCfg[1];
+            buildManager.FindActiveProjectCfg(IntPtr.Zero, IntPtr.Zero, ppHierarchy, ppIVsProjectCfg);
+
+            IVsBuildableProjectCfg ppIVsBuildableProjectCfg;
+            ppIVsProjectCfg[0].get_BuildableProjectCfg(out ppIVsBuildableProjectCfg);
+            
+              uint pdwCookie;
+            ppIVsBuildableProjectCfg.AdviseBuildStatusCallback(new MyBuildStatusCallback(), out pdwCookie);
+            */
+
             await MSBuildCommand.InitializeAsync(this);
             await OutputPaneManager.InitializeAsync(this, OutputPaneTypes.Build);
             TaskPaneManager.Initialize(this);

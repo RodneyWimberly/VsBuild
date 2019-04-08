@@ -1,31 +1,67 @@
 ﻿using System;
 using System.Drawing;
+using MediaColor = System.Windows.Media.Color;
+using DrawingColor = System.Drawing.Color;
 
 namespace VsBuild.VsExtension
 {
     public static class ColorExtensions
     {
-        public static System.Windows.Media.Color MediaColor(this ConsoleColor color)
+        public static string ToHtmlColor(this ConsoleColor consoleColor)
         {
-            Color drawingColor = color.DrawingColor();
-            return System.Windows.Media.Color.FromArgb(drawingColor.A, drawingColor.R, drawingColor.G, drawingColor.B);
+            return ColorTranslator.ToHtml(consoleColor.ToDrawingColor());
         }
 
-        public static Color DrawingColor(this ConsoleColor color)
+        public static string ToHtmlColor(this MediaColor mediaColor)
         {
-            Color drawingColor;
+            return ColorTranslator.ToHtml(mediaColor.ToDrawingColor());
+        }
+
+        public static string ToHtmlColor(this DrawingColor drawingColor)
+        {
+            return ColorTranslator.ToHtml(drawingColor);
+        }
+
+        public static MediaColor ToMediaColor(this string htmlColor)
+        {
+            return ColorTranslator.FromHtml(htmlColor).ToMediaColor();
+        }
+
+        public static MediaColor ToMediaColor(this DrawingColor drawingColor)
+        {
+            return MediaColor.FromArgb(drawingColor.A, drawingColor.R, drawingColor.G, drawingColor.B);
+        }
+
+        public static MediaColor ToMediaColor(this ConsoleColor color)
+        {
+            return color.ToDrawingColor().ToMediaColor();
+        }
+
+        public static DrawingColor ToDrawingColor(this string htmlColor)
+        {
+            return ColorTranslator.FromHtml(htmlColor);
+        }
+
+        public static DrawingColor ToDrawingColor(this MediaColor mediaColor)
+        {
+            return DrawingColor.FromArgb(mediaColor.A, mediaColor.R, mediaColor.G, mediaColor.B);
+        }
+
+        public static DrawingColor ToDrawingColor(this ConsoleColor color)
+        {
+            DrawingColor drawingColor;
             switch (color)
             {
                 case ConsoleColor.Black:
-                    drawingColor = Color.Black;
+                    drawingColor = DrawingColor.Black;
                     break;
 
                 case ConsoleColor.Blue:
-                    drawingColor = Color.Blue;
+                    drawingColor = DrawingColor.Blue;
                     break;
 
                 case ConsoleColor.Cyan:
-                    drawingColor = Color.Cyan;
+                    drawingColor = DrawingColor.Cyan;
                     break;
 
                 case ConsoleColor.DarkBlue:
@@ -61,19 +97,19 @@ namespace VsBuild.VsExtension
                     break;
 
                 case ConsoleColor.Magenta:
-                    drawingColor = Color.Magenta;
+                    drawingColor = DrawingColor.Magenta;
                     break;
 
                 case ConsoleColor.Red:
-                    drawingColor = Color.Red;
+                    drawingColor = DrawingColor.Red;
                     break;
 
                 case ConsoleColor.White:
-                    drawingColor = Color.White;
+                    drawingColor = DrawingColor.White;
                     break;
 
                 default:
-                    drawingColor = Color.Yellow;
+                    drawingColor = DrawingColor.Yellow;
                     break;
             }
             return drawingColor;

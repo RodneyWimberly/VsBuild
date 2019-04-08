@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Framework;
-using Newtonsoft.Json;
 using System;
+using System.Xml.Linq;
 
 namespace VsBuild.MSBuildLogger
 {
@@ -8,23 +8,29 @@ namespace VsBuild.MSBuildLogger
     {
         public static void Write(string message)
         {
-            Console.Out.Write(message);
+            WriteXElement(LoggerElementTypes.Message, message);
         }
         public static void SetColor(ConsoleColor color)
         {
-            Console.Out.Write($"#SetColor:{color}#");
+            WriteXElement(LoggerElementTypes.SetColor, color.ToString());
         }
         public static void ResetColor()
         {
-            Console.Out.Write("#ResetColor#");
+            WriteXElement(LoggerElementTypes.ResetColor, string.Empty);
         }
         public static void Error(BuildErrorEventArgs args)
         {
-            Console.Out.Write($"#BuildError:{JsonConvert.SerializeObject(args)}#");
+            WriteXElement(LoggerElementTypes.Error, args.Serialize());
         }
         public static void Warning(BuildWarningEventArgs args)
         {
-            Console.Out.Write($"#BuildWarning:{JsonConvert.SerializeObject(args)}#");
+            WriteXElement(LoggerElementTypes.Warning, args.Serialize());
+        }
+        private static void WriteXElement(LoggerElementTypes type, string data)
+        {
+            XElement element = new XElement("MSBuildLogger", data.Replace("\r\n", string.Empty));
+            element.Add(new XAttribute("Type", type));
+            Console.Out.WriteLine(element.ToString());
         }
     }
 }

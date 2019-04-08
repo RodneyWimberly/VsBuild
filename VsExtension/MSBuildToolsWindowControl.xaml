@@ -16,12 +16,7 @@
             <Button x:Name="SaveButton" Width="50" Content="Save" Click="SaveButton_Click" />
             <Button x:Name="CancelButton" Width="50" Content="Cancel" IsEnabled="False"  Click="CancelButton_Click" />
         </ToolBar>
-        <RichTextBox x:Name="LogTextBox" Background="{x:Null}" DockPanel.Dock="Bottom" ScrollViewer.CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" AllowDrop="False" IsReadOnly="True" IsUndoEnabled="False">
-            <RichTextBox.Resources>
-                <Style TargetType="{x:Type Paragraph}">
-                    <Setter Property="Margin" Value="0" />
-                </Style>
-            </RichTextBox.Resources>
-        </RichTextBox>
+        <WebBrowser x:Name="LogViewer" DockPanel.Dock="Bottom" ScrollViewer.CanContentScroll="True"  >
+        </WebBrowser>
     </DockPanel>  
 </UserControl>

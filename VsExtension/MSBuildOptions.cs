@@ -12,7 +12,7 @@ namespace VsBuild.VsExtension
     [Guid(MSBuildConstants.guidMSBuildOptionsWindow)]
     public class MSBuildOptions : DialogPage
     {
-        public const string Category = "MSBuild";
+        public const string Category = "VsBuild";
         public const string SubCategory = "General";
 
         public MSBuildOptions()
@@ -27,6 +27,7 @@ namespace VsBuild.VsExtension
 
             MSBuildTargetMenuItems.Clear();
             MSBuildTargetMenuItems.Load(settings.MSBuildTargetMenuItems);
+            ShowOnMainMenu = settings.ShowOnMainMenu;
 
             MSBuildProjectFile = settings.MSBuildProjectFile;
             LoggerVerbosity = settings.LoggerVerbosity;
@@ -42,6 +43,7 @@ namespace VsBuild.VsExtension
             Settings settings = Settings.Default;
 
             settings.MSBuildTargetMenuItems = MSBuildTargetMenuItems.Save();
+            settings.ShowOnMainMenu = ShowOnMainMenu;
 
             settings.MSBuildProjectFile = MSBuildProjectFile;
             settings.LoggerVerbosity = LoggerVerbosity;
@@ -62,6 +64,11 @@ namespace VsBuild.VsExtension
         [Description("Menu item and MSBuild Target associations")]
         public MSBuildTargetMenuItems MSBuildTargetMenuItems { get; set; }
 
+        [Category(TargetMenuItemsSubCategory)]
+        [DisplayName("Show On Main Menu")]
+        [Description("Determines if MSBuild Target Menu Items appear on the Main Menu. The new menu choices will always show on the Solution Menu")]
+        public bool ShowOnMainMenu { get; set; }
+        
         ////////////////////////////////////////////////////////////////////////////////////
         private const string BuildParametersSubCategory = "Build Parameters";
 

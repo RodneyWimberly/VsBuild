@@ -61,7 +61,7 @@ namespace VsBuild.VsExtension.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Microsoft Sans Serif, 8pt")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Lucida Console, 10pt")]
         public global::System.Drawing.Font DefaultFont {
             get {
                 return ((global::System.Drawing.Font)(this["DefaultFont"]));
@@ -73,7 +73,7 @@ namespace VsBuild.VsExtension.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Black")]
+        [global::System.Configuration.DefaultSettingValueAttribute("White")]
         public global::System.ConsoleColor DefaultTextColor {
             get {
                 return ((global::System.ConsoleColor)(this["DefaultTextColor"]));
@@ -104,6 +104,18 @@ namespace VsBuild.VsExtension.Properties {
             }
             set {
                 this["LoggerVerbosity"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowOnMainMenu {
+            get {
+                return ((bool)(this["ShowOnMainMenu"]));
+            }
+            set {
+                this["ShowOnMainMenu"] = value;
             }
         }
     }

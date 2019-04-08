@@ -2,19 +2,21 @@
 {
     using Microsoft.VisualStudio.Shell;
     using System;
+    using System.Drawing;
     using System.IO;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Documents;
     using System.Windows.Forms;
     using System.Windows.Media;
+    using VsBuild.VsExtension.Properties;
 
     /// <summary>
     /// Interaction logic for MSBuildWindowControl.
     /// </summary>
     public partial class MSBuildToolsWindowControl : System.Windows.Controls.UserControl
     {
-        MSBuildToolsWindow parent;
+        MSBuildToolsWindow _parent;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MSBuildToolsWindowControl"/> class.
@@ -22,14 +24,26 @@
         public MSBuildToolsWindowControl(MSBuildToolsWindow window)
         {
             InitializeComponent();
-            parent = window;
-            LogTextBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
-            LogTextBox.Document.PageWidth = 1000;
+            _parent = window;
+            Load();
         }
 
-        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        private void Load()
         {
-            ClearLog();
+            string html = File.ReadAllText($"{Directory.GetCurrentDirectory()}\\BuildLog.html");
+            LogViewer.Navigated += LogViewer_Navigated;
+            LogViewer.NavigateToString(html);
+        }
+
+        private async void LogViewer_Navigated(object sender, System.Windows.Navigation.NavigationEventArgs e)
+        {
+            await System.Threading.Tasks.Task.Delay(10);
+            SetLayout(Settings.Default.DefaultFont, Settings.Default.BackgroundColor);
+        }
+
+        private async void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            await ClearLogAsync();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -41,7 +55,6 @@
                 MessageBoxImage.Question, 
                 MessageBoxResult.No) == MessageBoxResult.Yes)
             {
-                
                 CancelButton.IsEnabled = false;
                 MSBuildCommand.Instance.CancellationTokenSource.Cancel();
             }
@@ -55,23 +68,18 @@
         public async System.Threading.Tasks.Task AppendLogAsync(string text, ConsoleColor textColor)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            Run run = new Run(text)
-            {
-                Foreground = new SolidColorBrush(textColor.MediaColor())
-            };
             using (System.Windows.Threading.DispatcherProcessingDisabled d = Dispatcher.DisableProcessing())
             {
-                LogTextBox.Document.Blocks.Add(new Paragraph(run));
-                LogTextBox.ScrollToEnd();
+                LogViewer.InvokeScript("appendLog", text, textColor.ToHtmlColor());
             }
         }
 
         public string SaveLog(bool showMessage = false)
         {
-            string fileName = $"{Environment.CurrentDirectory}\\{DateTime.UtcNow.ToString("yyyyMMddTHHmmss")}.rtf";
-            FileStream fileStream = new FileStream(fileName, FileMode.Create);
-            TextRange range = new TextRange(LogTextBox.Document.ContentStart, LogTextBox.Document.ContentEnd);
-            range.Save(fileStream, System.Windows.DataFormats.Rtf);
+            string fileName = $"{Environment.CurrentDirectory}\\BuildLog_{DateTime.UtcNow.ToString("yyyyMMddTHHmmss")}.html";
+            dynamic doc = LogViewer.Document;
+            var htmlText = doc.documentElement.InnerHtml;
+            File.WriteAllText(fileName, htmlText);
             if (showMessage)
                 System.Windows.MessageBox.Show(
                 $"The MSBuild Log has been saved to '{fileName}'",
@@ -81,10 +89,20 @@
             return fileName;
         }
 
-       public void ClearLog()
+       public async System.Threading.Tasks.Task ClearLogAsync()
         {
-            TextRange range = new TextRange(LogTextBox.Document.ContentStart, LogTextBox.Document.ContentEnd);
-            range.Text = "";
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            using (System.Windows.Threading.DispatcherProcessingDisabled d = Dispatcher.DisableProcessing())
+            {
+                LogViewer.InvokeScript("clearLog");
+            }
+        }
+
+        public void SetLayout(Font font, System.Drawing.Color backgroundColor)
+        {
+            string style = font.Style == System.Drawing.FontStyle.Italic ? "Italic " : "";
+            string weight = font.Style == System.Drawing.FontStyle.Bold ? "Bold " : "";
+            LogViewer.InvokeScript("setLayout", $"{style}{weight}{font.Size}pt {font.Name}", backgroundColor.ToHtmlColor());
         }
     }
 }
