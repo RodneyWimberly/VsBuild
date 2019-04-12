@@ -5,10 +5,6 @@
     using System.Drawing;
     using System.IO;
     using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Documents;
-    using System.Windows.Forms;
-    using System.Windows.Media;
     using VsBuild.VsExtension.Properties;
 
     /// <summary>
@@ -38,7 +34,8 @@
         private async void LogViewer_Navigated(object sender, System.Windows.Navigation.NavigationEventArgs e)
         {
             await System.Threading.Tasks.Task.Delay(10);
-            SetLayout(Settings.Default.DefaultFont, Settings.Default.BackgroundColor);
+            Settings settings = Settings.Default;
+            SetLayout(settings.DefaultFont, settings.BackgroundColor, settings.BuildLogWordWrap);
         }
 
         private async void ClearButton_Click(object sender, RoutedEventArgs e)
@@ -48,12 +45,12 @@
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            if(System.Windows.MessageBox.Show(
-                "Do you wish to cancel this build?", 
-                "Cancel MSBuild", 
-                MessageBoxButton.YesNo, 
-                MessageBoxImage.Question, 
-                MessageBoxResult.No) == MessageBoxResult.Yes)
+            if (MessageBox.Show(
+                 "Do you wish to cancel this build?",
+                 "Cancel MSBuild",
+                 MessageBoxButton.YesNo,
+                 MessageBoxImage.Question,
+                 MessageBoxResult.No) == MessageBoxResult.Yes)
             {
                 CancelButton.IsEnabled = false;
                 MSBuildCommand.Instance.CancellationTokenSource.Cancel();
@@ -62,7 +59,12 @@
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            SaveLog(true);
+            string fileName = SaveLog();
+            MessageBox.Show(
+               $"The MSBuild Log has been saved to '{fileName}'",
+               "Save MSBuild Log",
+               MessageBoxButton.OK,
+               MessageBoxImage.Information);
         }
 
         public async System.Threading.Tasks.Task AppendLogAsync(string text, ConsoleColor textColor)
@@ -74,18 +76,12 @@
             }
         }
 
-        public string SaveLog(bool showMessage = false)
+        public string SaveLog()
         {
             string fileName = $"{Environment.CurrentDirectory}\\BuildLog_{DateTime.UtcNow.ToString("yyyyMMddTHHmmss")}.html";
             dynamic doc = LogViewer.Document;
             var htmlText = doc.documentElement.InnerHtml;
             File.WriteAllText(fileName, htmlText);
-            if (showMessage)
-                System.Windows.MessageBox.Show(
-                $"The MSBuild Log has been saved to '{fileName}'",
-                "Save MSBuild Log",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
             return fileName;
         }
 
@@ -98,11 +94,11 @@
             }
         }
 
-        public void SetLayout(Font font, System.Drawing.Color backgroundColor)
+        public void SetLayout(Font font, Color backgroundColor, bool enableWordWrap)
         {
             string style = font.Style == System.Drawing.FontStyle.Italic ? "Italic " : "";
             string weight = font.Style == System.Drawing.FontStyle.Bold ? "Bold " : "";
-            LogViewer.InvokeScript("setLayout", $"{style}{weight}{font.Size}pt {font.Name}", backgroundColor.ToHtmlColor());
+            LogViewer.InvokeScript("setLayout", $"{style}{weight}{font.Size}pt {font.Name}", backgroundColor.ToHtmlColor(), enableWordWrap);
         }
     }
 }

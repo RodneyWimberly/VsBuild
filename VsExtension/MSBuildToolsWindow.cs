@@ -46,19 +46,19 @@
             await MSBuildToolsWindowControl.AppendLogAsync(text, color);
         }
 
-        public void SaveLogToDisk()
+        public string SaveLogToDisk()
         {
-            MSBuildToolsWindowControl.SaveLog();
+            return MSBuildToolsWindowControl.SaveLog();
         }
 
-        public async void ClearLog()
+        public async System.Threading.Tasks.Task ClearLogAsync()
         {
             await MSBuildToolsWindowControl.ClearLogAsync();
         }
 
-        public void SetLogLayout(Font font, Color backgroundColor)
+        public void SetLogLayout(Font font, Color backgroundColor, bool enableWordWrap)
         {
-            MSBuildToolsWindowControl.SetLayout(font, backgroundColor);
+            MSBuildToolsWindowControl.SetLayout(font, backgroundColor, enableWordWrap);
         }
     }
 }

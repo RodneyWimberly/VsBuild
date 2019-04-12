@@ -1,16 +1,13 @@
-﻿using VsBuild.VsExtension.Properties;
-using VsBuild.MSBuildRunner;
-using EnvDTE;
-using EnvDTE80;
-using Microsoft;
-using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
-using System.Collections;
 using System.ComponentModel.Design;
-using System.Globalization;
 using System.IO;
 using System.Threading;
+using VsBuild.MSBuildRunner;
+using VsBuild.VsExtension.EventSinks;
+using VsBuild.VsExtension.Managers;
+using VsBuild.VsExtension.Properties;
 using Task = System.Threading.Tasks.Task;
 
 namespace VsBuild.VsExtension
@@ -137,23 +134,27 @@ namespace VsBuild.VsExtension
                         MSBuildTargets = _targetMenuList[targetCmdIndex].MsBuildTarget
                     };
 
-                    msBuild.BuildErrorEvent += OnBuildError;
-                    msBuild.BuildWarningEvent += OnBuildWarning;
-                    msBuild.ErrorEvent += OnErrorEvent;
-                    msBuild.WriteToLog += OnWriteToLog;
-                    msBuild.SetColor += OnSetColor;
-                    msBuild.ResetColor += OnResetColor;
+                    msBuild.BuildErrorEvent += OnBuildErrorAsync;
+                    msBuild.BuildWarningEvent += OnBuildWarningAsync;
+                    msBuild.ErrorEvent += OnErrorEventAsync;
+                    msBuild.WriteToLog += OnWriteToLogAsync;
+                    msBuild.SetColor += OnSetColorAsync;
+                    msBuild.ResetColor += OnResetColorAsync;
 
                     _toolsWindow = await GetToolsWindowAsync();
-                    _toolsWindow.SetLogLayout(settings.DefaultFont, settings.BackgroundColor);
-                    _toolsWindow.ClearLog();
+                    _toolsWindow.SetLogLayout(settings.DefaultFont, settings.BackgroundColor, settings.BuildLogWordWrap);
+                    await _toolsWindow.ClearLogAsync();
                     _toolsWindow.SetCancelButtonEnabledFlag(true);
 
                     await msBuild.BuildAsync(CancellationTokenSource.Token);
 
                     _toolsWindow.SetCancelButtonEnabledFlag(false);
                     if (settings.SaveLogToDisk)
-                        _toolsWindow.SaveLogToDisk();
+                    {
+                        string logFile = _toolsWindow.SaveLogToDisk();
+                        await OnWriteToLogAsync(this, new EventArgs<string>($"Build Log was saved to {logFile}"));
+                    }
+
                 }
             }
         }
@@ -170,7 +171,7 @@ namespace VsBuild.VsExtension
             return (MSBuildToolsWindow)window;
         }
 
-        private async void OnErrorEvent(object sender, ErrorEventArgs e)
+        private async Task OnErrorEventAsync(object sender, ErrorEventArgs e)
         {
             string errorMessage = string.Empty;
             if (CancellationTokenSource.IsCancellationRequested)
@@ -182,27 +183,29 @@ namespace VsBuild.VsExtension
             await _toolsWindow.AppendLogAsync(ConsoleColor.Red, errorMessage);
         }
 
-        private void OnSetColor(ConsoleColor color)
+        private Task OnSetColorAsync(object sender, EventArgs<ConsoleColor> args)
         {
-            _consoleColor = color;
+            _consoleColor = args.Data;
+            return Task.CompletedTask;
         }
 
-        private void OnResetColor()
+        private Task OnResetColorAsync(object sender, EventArgs args)
         {
             _consoleColor = _defaultTextColor;
+            return Task.CompletedTask;
         }
 
-        private async void OnWriteToLog(string data)
+        private async Task OnWriteToLogAsync(object sender, EventArgs<string> args)
         {
-            await _toolsWindow.AppendLogAsync(_consoleColor, data);
+            await _toolsWindow.AppendLogAsync(_consoleColor, args.Data);
         }
                
-        private async void OnBuildWarning(object sender, Microsoft.Build.Framework.BuildWarningEventArgs e)
+        private async Task OnBuildWarningAsync(object sender, Microsoft.Build.Framework.BuildWarningEventArgs e)
         {
             await TaskPaneManager.AddBuildWarningAsync(e);
         }
 
-        private async void OnBuildError(object sender, Microsoft.Build.Framework.BuildErrorEventArgs e)
+        private async Task OnBuildErrorAsync(object sender, Microsoft.Build.Framework.BuildErrorEventArgs e)
         {
             await TaskPaneManager.AddBuildErrorAsync(e);
         }

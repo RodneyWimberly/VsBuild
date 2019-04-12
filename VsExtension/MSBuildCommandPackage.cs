@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
+using VsBuild.VsExtension.EventSinks;
+using VsBuild.VsExtension.Managers;
 using Task = System.Threading.Tasks.Task;
 
 namespace VsBuild.VsExtension
@@ -71,20 +73,7 @@ namespace VsBuild.VsExtension
                 SolutionEventsSink.Initialize(this, _solutionService, cookie);
             }
 
-
-            //_solutionService = await GetServiceAsync(typeof(SVsSolution)) as IVsBuildStatusCallback;
-            /*IVsSolutionBuildManager buildManager = (IVsSolutionBuildManager)GetService(typeof(SVsSolutionBuildManager));
-
-            IVsProjectCfg[] ppIVsProjectCfg = new IVsProjectCfg[1];
-            buildManager.FindActiveProjectCfg(IntPtr.Zero, IntPtr.Zero, ppHierarchy, ppIVsProjectCfg);
-
-            IVsBuildableProjectCfg ppIVsBuildableProjectCfg;
-            ppIVsProjectCfg[0].get_BuildableProjectCfg(out ppIVsBuildableProjectCfg);
-            
-              uint pdwCookie;
-            ppIVsBuildableProjectCfg.AdviseBuildStatusCallback(new MyBuildStatusCallback(), out pdwCookie);
-            */
-
+            CommandEventSink.Initialize(this);
             await MSBuildCommand.InitializeAsync(this);
             await OutputPaneManager.InitializeAsync(this, OutputPaneTypes.Build);
             TaskPaneManager.Initialize(this);
@@ -96,6 +85,7 @@ namespace VsBuild.VsExtension
         {
             base.Dispose(disposing);
             ThreadHelper.ThrowIfNotOnUIThread();
+            CommandEventSink.Uninitialize();
             if (_solutionService != null && SolutionEventsSink.Instance.SolutionCookie != 0)
             {
                 _solutionService.UnadviseSolutionEvents(SolutionEventsSink.Instance.SolutionCookie);

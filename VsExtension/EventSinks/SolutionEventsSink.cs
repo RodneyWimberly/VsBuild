@@ -11,7 +11,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.Design;
 using System.IO;
 
-namespace VsBuild.VsExtension
+namespace VsBuild.VsExtension.EventSinks
 {
     public class SolutionEventsSink : IVsSolutionEvents
     {

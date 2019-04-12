@@ -58,10 +58,11 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="EventSinks\BuildEventsSink.cs" />
     <Compile Include="ColorExtensions.cs" />
+    <Compile Include="EventSinks\CommandEventSink.cs" />
     <Compile Include="MSBuildConstants.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="SolutionEventsSink.cs" />
+    <Compile Include="EventSinks\SolutionEventsSink.cs" />
     <Compile Include="MSBuildTargetMenuItem.cs" />
     <Compile Include="MSBuildTargetMenuItems.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -79,10 +80,10 @@
     <Compile Include="MSBuildToolsWindowControl.xaml.cs">
       <DependentUpon>MSBuildToolsWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OutputPaneManager.cs" />
+    <Compile Include="Managers\OutputPaneManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TaskPaneManager.cs" />
-    <Compile Include="UIManager.cs" />
+    <Compile Include="Managers\TaskPaneManager.cs" />
+    <Compile Include="Managers\UIManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\VsBuild.snk">
@@ -154,6 +155,9 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\Microsoft.VisualStudio.OLE.Interop.7.10.6071\lib\Microsoft.VisualStudio.OLE.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Project, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b7ed17bb64a9597f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Project.1.0.0.0\lib\net40\Microsoft.VisualStudio.Project.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Setup.Configuration.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.Setup.Configuration.Interop.1.16.30\lib\net35\Microsoft.VisualStudio.Setup.Configuration.Interop.dll</HintPath>

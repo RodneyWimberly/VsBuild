@@ -29,6 +29,9 @@ namespace VsBuild.VsExtension
             MSBuildTargetMenuItems.Load(settings.MSBuildTargetMenuItems);
             ShowOnMainMenu = settings.ShowOnMainMenu;
 
+            OverrideRebuildCommand = settings.OverrideRebuildCommand;
+            BuildAfterGetLatest = settings.BuildAfterGetLatest;
+
             MSBuildProjectFile = settings.MSBuildProjectFile;
             LoggerVerbosity = settings.LoggerVerbosity;
             SaveLogToDisk = settings.SaveLogToDisk;
@@ -36,6 +39,7 @@ namespace VsBuild.VsExtension
             BackgroundColor = settings.BackgroundColor;
             DefaultFont = settings.DefaultFont;
             DefaultTextColor = settings.DefaultTextColor;
+            BuildLogWordWrap = settings.BuildLogWordWrap;
         }
 
         public override void SaveSettingsToStorage()
@@ -45,13 +49,17 @@ namespace VsBuild.VsExtension
             settings.MSBuildTargetMenuItems = MSBuildTargetMenuItems.Save();
             settings.ShowOnMainMenu = ShowOnMainMenu;
 
+            settings.OverrideRebuildCommand = OverrideRebuildCommand;
+            settings.BuildAfterGetLatest = BuildAfterGetLatest;
+
             settings.MSBuildProjectFile = MSBuildProjectFile;
             settings.LoggerVerbosity = LoggerVerbosity;
             settings.SaveLogToDisk = SaveLogToDisk;
-            settings.DefaultTextColor = DefaultTextColor;
 
+            settings.DefaultTextColor = DefaultTextColor;
             settings.BackgroundColor = BackgroundColor;
             settings.DefaultFont = DefaultFont;
+            settings.BuildLogWordWrap = BuildLogWordWrap;
 
             settings.Save();
         }
@@ -68,7 +76,20 @@ namespace VsBuild.VsExtension
         [DisplayName("Show On Main Menu")]
         [Description("Determines if MSBuild Target Menu Items appear on the Main Menu. The new menu choices will always show on the Solution Menu")]
         public bool ShowOnMainMenu { get; set; }
-        
+
+        ////////////////////////////////////////////////////////////////////////////////////
+        private const string MenuCommandOverridesSubCategory = "Visual Studio Menu Command Overrides";
+
+        [Category(MenuCommandOverridesSubCategory)]
+        [DisplayName("Override Rebuild Menu Command")]
+        [Description("Calls MSBuild instead of Visual Studio build when the 'Rebuild' Menu Command is chosen")]
+        public bool OverrideRebuildCommand { get; set; }
+
+        [Category(MenuCommandOverridesSubCategory)]
+        [DisplayName("Call MSBuild after 'Get Latest Version' Menu Command is chosen")]
+        [Description("Calls MSBuild command after the Visual Studio 'Get Latest Version' Menu Command is chosen")]
+        public bool BuildAfterGetLatest { get; set; }
+
         ////////////////////////////////////////////////////////////////////////////////////
         private const string BuildParametersSubCategory = "Build Parameters";
 
@@ -104,5 +125,11 @@ namespace VsBuild.VsExtension
         [DisplayName("Default Font")]                                                                                                                             
         [Description("The default font for the Log Viewer.")]
         public Font DefaultFont { get; set; }
+
+
+        [Category(LayoutSubCategory)]
+        [DisplayName("Enable Build Log Word-Wrap")]
+        [Description("Determines if the Build Log will have Word-Wrap enabled")]
+        public bool BuildLogWordWrap { get; set; }
     }
 }

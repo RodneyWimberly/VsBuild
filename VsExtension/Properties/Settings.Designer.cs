@@ -118,5 +118,41 @@ namespace VsBuild.VsExtension.Properties {
                 this["ShowOnMainMenu"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool OverrideRebuildCommand {
+            get {
+                return ((bool)(this["OverrideRebuildCommand"]));
+            }
+            set {
+                this["OverrideRebuildCommand"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool BuildAfterGetLatest {
+            get {
+                return ((bool)(this["BuildAfterGetLatest"]));
+            }
+            set {
+                this["BuildAfterGetLatest"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool BuildLogWordWrap {
+            get {
+                return ((bool)(this["BuildLogWordWrap"]));
+            }
+            set {
+                this["BuildLogWordWrap"] = value;
+            }
+        }
     }
 }

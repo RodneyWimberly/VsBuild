@@ -16,12 +16,12 @@ namespace VsBuild.MSBuildRunner
 {
     public class MSBuildProcess
     {
-        public ErrorEventHandler ErrorEvent;
-        public BuildErrorEventHandler BuildErrorEvent;
-        public BuildWarningEventHandler BuildWarningEvent;
-        public ColorSetter SetColor;
-        public ColorResetter ResetColor;
-        public WriteHandler WriteToLog;
+        public AsyncEventHandler<ErrorEventArgs> ErrorEvent;
+        public AsyncEventHandler<BuildErrorEventArgs> BuildErrorEvent;
+        public AsyncEventHandler<BuildWarningEventArgs> BuildWarningEvent;
+        public AsyncEventHandler<EventArgs<ConsoleColor>> SetColor;
+        public AsyncEventHandler<EventArgs> ResetColor;
+        public AsyncEventHandler<EventArgs<string>> WriteToLog;
 
         public string MSBuildTargets { get; set; } 
         public string MSBuildProjectFile { get; set; } 
@@ -72,8 +72,8 @@ namespace VsBuild.MSBuildRunner
                     msBuild.StartInfo.RedirectStandardInput = true;
                     msBuild.StartInfo.RedirectStandardError = true;
                     
-                    msBuild.OutputDataReceived += MsBuild_OutputDataReceived;
-                    msBuild.ErrorDataReceived += (sender, args) => ErrorEvent?.Invoke(this, new ErrorEventArgs(new Exception(args.Data)));
+                    msBuild.OutputDataReceived += async (sender, args) => await MsBuild_OutputDataReceived(sender, args);
+                    msBuild.ErrorDataReceived += async (sender, args) => await ErrorEvent?.InvokeAsync(this, new ErrorEventArgs(new Exception(args.Data)));
 
                     msBuild.Start();
                     msBuild.BeginOutputReadLine();
@@ -84,16 +84,17 @@ namespace VsBuild.MSBuildRunner
                 }
                 
                 if (cancellationToken.IsCancellationRequested)
-                    WriteToLog?.Invoke("Build was canceled");
+                    WriteToLog?.InvokeAsync(this, new EventArgs<string>("Build was canceled"));
+                    //await Task.Factory.FromAsync(WriteToLog.BeginInvoke, WriteToLog.EndInvoke, "Build was canceled", null);
             }
             catch (Exception ex)
             {
-                ErrorEvent?.Invoke(this, new ErrorEventArgs(ex));
+                await ErrorEvent?.InvokeAsync(this, new ErrorEventArgs(ex));
                 return;
             }
         }
 
-        private void MsBuild_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        private async Task MsBuild_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data == null)
                 return;
@@ -108,26 +109,26 @@ namespace VsBuild.MSBuildRunner
                 {
                     case LoggerElementTypes.SetColor:
                         if (Enum.TryParse(data.Value, out ConsoleColor consoleColor))
-                            SetColor?.Invoke(consoleColor);
+                            await SetColor?.InvokeAsync(this, new EventArgs<ConsoleColor>(consoleColor));
                         break;
                     case LoggerElementTypes.ResetColor:
-                        ResetColor?.Invoke();
+                        await ResetColor?.InvokeAsync(this, EventArgs.Empty);
                         break;
                     case LoggerElementTypes.Message:
-                        WriteToLog?.Invoke(data.Value);
+                        await WriteToLog?.InvokeAsync(this, new EventArgs<string>(data.Value));
                         break;
                     case LoggerElementTypes.Error:
-                        BuildErrorEvent?.Invoke(this, data.Value.Deserialize<BuildErrorEventArgs>());
+                        await BuildErrorEvent?.InvokeAsync(this, data.Value.Deserialize<BuildErrorEventArgs>());
                         break;
                     case LoggerElementTypes.Warning:
-                        BuildWarningEvent?.Invoke(this, data.Value.Deserialize<BuildWarningEventArgs>());
+                        await BuildWarningEvent?.InvokeAsync(this, data.Value.Deserialize<BuildWarningEventArgs>());
                         break;
                 }
                 
             }
             catch
             {
-                WriteToLog?.Invoke(e.Data);
+                await WriteToLog?.InvokeAsync(this, new EventArgs<string>(e.Data));
             }
         }
     }

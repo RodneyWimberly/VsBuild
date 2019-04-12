@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using Task = System.Threading.Tasks.Task;
 
-namespace VsBuild.VsExtension
+namespace VsBuild.VsExtension.Managers
 {
     interface IOutputPane
     {
